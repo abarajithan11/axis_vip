@@ -10,7 +10,7 @@ module axis_sink #(
   input  logic [WORDS_PER_BEAT-1:0][WORD_W-1:0] m_data
 );
 
-  task automatic axis_pull_packet(output logic [WORD_W-1:0] packet [$]);
+  task automatic axis_pull_packet(output logic signed [WORD_W-1:0] packet [$]);
     
     int i_words = 0;
     bit done = 0;
@@ -36,7 +36,7 @@ module axis_sink #(
     end
   endtask
 
-  task automatic write_queue_to_file (string filepath, input logic [WORD_W-1:0] q [$]);
+  task automatic write_queue_to_file (string filepath, input logic signed [WORD_W-1:0] q [$]);
     int fd;
     fd = $fopen(filepath, "w");
     if (fd == 0) $fatal(1, "Error opening file %s", filepath);

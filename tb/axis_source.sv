@@ -10,7 +10,7 @@ module axis_source #(
   output logic [WORDS_PER_BEAT-1:0] s_keep = '0,
   output logic [WORDS_PER_BEAT-1:0][WORD_W-1:0] s_data = 'x
 );
-  task automatic axis_push_packet(input logic [WORD_W-1:0] packet [$]);
+  task automatic axis_push_packet(input logic signed [WORD_W-1:0] packet [$]);
 
     int total_words = packet.size();
     int n_beats = `CEIL(total_words, WORDS_PER_BEAT);
@@ -43,7 +43,7 @@ module axis_source #(
     end
   endtask
 
-  task automatic read_file_to_queue (string filepath, output [WORD_W-1:0] q [$]);
+  task automatic read_file_to_queue (string filepath, output logic signed [WORD_W-1:0] q [$]);
     int fd, status;
     logic signed [WORD_W-1:0] val;
     q = {};
@@ -58,7 +58,7 @@ module axis_source #(
     $fclose(fd);
   endtask
 
-  task automatic get_random_queue (output logic [WORD_W-1:0] q [$], input int n_words);
+  task automatic get_random_queue (output logic signed [WORD_W-1:0] q [$], input int n_words);
     q = {};
     repeat(n_words) q.push_back(WORD_W'($urandom_range(0,2**WORD_W-1)));
   endtask

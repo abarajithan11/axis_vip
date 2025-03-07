@@ -16,7 +16,7 @@ module file_tb;
   axis_sink   #(.WORD_W(WORD_W), .BUS_W(BUS_W), .PROB_READY(PROB_READY)) sink   (.*);
   assign {s_ready, m_valid, m_data, m_keep, m_last} = {m_ready, s_valid, s_data, s_keep, s_last};
 
-  typedef logic [WORD_W-1:0] packet_t [$];
+  typedef logic signed [WORD_W-1:0] packet_t [$];
   packet_t tx_packet, rx_packet, temp, exp;
   string path_tx, path_rx;
   int n_words;
