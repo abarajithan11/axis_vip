@@ -10,36 +10,55 @@ module axis_source #(
   output logic [WORDS_PER_BEAT-1:0] s_keep = '0,
   output logic [WORDS_PER_BEAT-1:0][WORD_W-1:0] s_data = 'x
 );
-  task automatic axis_push_packet(input logic signed [WORD_W-1:0] packet [$]);
 
+  // Register outputs on posedge to avoid race conditions
+  logic s_valid_d, s_last_d;
+  logic [WORDS_PER_BEAT-1:0]                s_keep_d;
+  logic [WORDS_PER_BEAT-1:0][WORD_W-1:0]    s_data_d;
+
+  always_ff @(posedge clk) begin
+    s_valid <= s_valid_d;
+    s_last  <= s_last_d;
+    s_keep  <= s_keep_d;
+    s_data  <= s_data_d;
+  end
+
+  task automatic axis_push_packet(input logic signed [WORD_W-1:0] packet [$]);
     int total_words = packet.size();
     int n_beats = `CEIL(total_words, WORDS_PER_BEAT);
     int i_words = 0;
 
+    // Between beats: keep outputs deasserted in the next cycle
+    s_valid_d = 0; s_last_d = 0; s_keep_d = '0; s_data_d = 'x;
+
     for (int ib=0; ib < n_beats; ib++) begin
-       // randomize s_valid and wait
+      // random idle cycles before we start the next beat
       while ($urandom_range(0,99) >= PROB_VALID) @(posedge clk);
 
-      #1ps; // V_erilator wants delays
-      s_valid = 1;
-      s_last  = ib == n_beats-1;
-
-      for (int i=0; i<WORDS_PER_BEAT; i++) 
+      // Prepare the beat for the *next* cycle
+      s_valid_d = 1;
+      s_last_d  = (ib == n_beats-1);
+      for (int i=0; i<WORDS_PER_BEAT; i++) begin
         if (i_words < total_words) begin
-          s_data[i] = packet[i_words];
-          s_keep[i] = 1;
-          i_words += 1;
+          s_data_d[i] = packet[i_words];
+          s_keep_d[i] = 1;
+          i_words++;
         end else begin
-          s_data[i] = 'x;
-          s_keep[i] = 0;
+          s_data_d[i] = 'x;
+          s_keep_d[i] = 0;
         end
+      end
 
-      do @(posedge clk); while (!s_ready); // wait for s_data to be accepted
-      
-      #1ps;
-      // clear s_valid and s_data
-      s_valid = 0;
-      s_data  = 'x;
+      // Wait until handshake occurs at a posedge (ready==1 while we hold valid)
+      @(posedge clk); // first cycle the beat becomes visible
+      while (!s_ready) @(posedge clk);
+
+      // Transfer happened at the last posedge; deassert for the next cycle
+      s_valid_d = 0;
+      s_keep_d  = '0;
+      s_data_d  = 'x;
+      s_last_d  = 0;
+      // (optional idle cycles will be inserted by the next PROB_VALID loop)
     end
   endtask
 

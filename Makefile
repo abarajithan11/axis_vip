@@ -28,3 +28,5 @@ clean:
 	rm -rf build run
 
 all: file nofile
+
+all_xsim: file_xsim nofile_xsim

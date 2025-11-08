@@ -18,7 +18,7 @@ module file_tb;
 
   typedef logic signed [WORD_W-1:0] packet_t [$];
   packet_t tx_packet, rx_packet, temp, exp;
-  string path_tx, path_rx;
+  string path_tx, path_rx, path_tx_n;
   int n_words;
 
   initial begin
@@ -42,14 +42,14 @@ module file_tb;
   initial begin
     $display("Waiting for packets to be received...");
     for (int n=0; n<NUM_EXP; n++) begin
-
       path_rx = $sformatf("rx_%0d.txt", n);
-
       sink.axis_pull_packet(rx_packet);
       sink.write_queue_to_file(path_rx, rx_packet);
 
-      source.read_file_to_queue(path_tx, exp);
-      if(exp == rx_packet)
+      path_tx_n = $sformatf("tx_%0d.txt", n);
+      source.read_file_to_queue(path_tx_n, exp);
+
+      if (exp == rx_packet)
         $display("Packet[%0d]: Outputs match: %p\n", n, rx_packet);
       else begin
         $display("Packet[%0d]: Expected: \n%p \n != \n Received: \n%p", n, exp, rx_packet);
