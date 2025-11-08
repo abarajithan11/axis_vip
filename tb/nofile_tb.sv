@@ -24,7 +24,7 @@ module nofile_tb;
   initial begin
     $dumpfile ("dump.vcd"); $dumpvars;
     repeat(5) @(posedge clk);
-    rstn <= 1;
+    rstn = 1;
 
     for (int n=0; n<NUM_EXP; n++) begin
       n_words = $urandom_range(1, 100);

@@ -20,9 +20,9 @@ module axis_sink #(
     while (!done) begin
 
       do begin 
-        #1ps m_ready <= 0; // keep m_ready low with probability (1-PROB_READY)
+        #1ps m_ready = 0; // keep m_ready low with probability (1-PROB_READY)
         while ($urandom_range(0,99) >= PROB_READY) @(posedge clk);
-        #1ps m_ready <= 1;
+        #1ps m_ready = 1;
         @(posedge clk); // keep m_ready high for one cycle
       end while (!m_valid); // if m_valid is high, break out of loop
       
